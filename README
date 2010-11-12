@@ -1,0 +1,1 @@
+Connects an Insteon PLM to Kynetx. Much work is still needed on this. Python libs for Insteon are in pylights.py and Kynetx libs are in kynetx.py. Need to put the Kynetx libs into it's own repo and create better error catching and such things.
