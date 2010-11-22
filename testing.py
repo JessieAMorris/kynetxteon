@@ -4,7 +4,7 @@ Created on Oct 4, 2010
 
 @author: sam
 '''
-import pylights, time, kynetx
+import pylights, time, kynetx, re
 from pprint import pprint
 
 p = pylights.plm("/dev/tty.serial") #,"verbose")
@@ -14,18 +14,28 @@ c = pylights.commandsFile("./commands.xml")
 app = kynetx.kynetx("a41x138")
 
 def showmessage(info, from_addr, command):
-	print
-	index = d.getIndexByAddress(from_addr)
-	from_name = d.getNameByIndex(index)
-	print "got message from: " + from_name
-	print "command hex: " + hex(command[0])
-	command_name = c.getCommandFromHex(command[0])
-	event_num = c.getCommandNumFromHex(command[0])
-	print "with command: " + command_name + " and event number: " + event_num
+  print
+  index = d.getIndexByAddress(from_addr)
+  from_name = d.getNameByIndex(index)
 
-	directive = app.raise_event("insteon",command_name, {"from":from_name, "number":event_num})
-	for directive in app.directives:
-		run_directive(directive)
+  from_addr = re.sub('\s+','.',p.list_to_hex(from_addr))
+
+  if from_name:
+    print "got message from: " + p.list_to_hex(from_addr)
+  else:
+    from_name = "unknown"
+    print "got message from: " + from_addr
+
+  print "command hex: " + hex(command[0])
+  command_name = c.getCommandFromHex(command[0])
+  event_num = c.getCommandNumFromHex(command[0])
+  if command_name:
+    print "with command: " + command_name + " and event number: " + event_num
+
+  directive = app.raise_event("insteon",command_name, {"number":event_num, "address":from_addr})
+
+  for directive in app.directives:
+    run_directive(directive)
 
 p.addEventListener(showmessage);
 
@@ -56,5 +66,5 @@ def docheckin():
 
 
 while(True):
-	#docheckin()
+	docheckin()
 	time.sleep(5)

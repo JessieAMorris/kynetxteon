@@ -243,56 +243,58 @@ class deviceFile:
 		file.close()
 
 class commandsFile:
-	'''
-	Handles XML device file access.  This is normally instantiated by a PLM 
-	object.
-	'''
-	def __init__(self, filename):
-		try:
-			if filename is not None:
-				try:
-					file = open(filename)
-				except IOError:
-					raise Exception('Cannot find device (XML) file: %s.' % filename)
-				else:
-					self.doc = parse(file)
-					file.close()
-					self.filename = filename
-					self.dev = self.doc.getElementsByTagName('Commands')
-					self.numCommands = self.dev.length
-			else:
-				self.filename = None
-				self.numCommands = 0
-		except:
-			raise
-			#self.filename = None
+  '''
+  Handles XML device file access.  This is normally instantiated by a PLM 
+  object.
+  '''
+  def __init__(self, filename):
+    try:
+      if filename is not None:
+        try:
+          file = open(filename)
+        except IOError:
+          raise Exception('Cannot find device (XML) file: %s.' % filename)
+        else:
+          self.doc = parse(file)
+          file.close()
+          self.filename = filename
+          self.dev = self.doc.getElementsByTagName('Commands')
+          self.numCommands = self.dev.length
+      else:
+        self.filename = None
+        self.numCommands = 0
+    except:
+      raise
+    #self.filename = None
 			
 	
-	def getCommandFromHex(self, hex_code):
-		'''
-		Returns the device address given an index into the device list.
-		'''
-		commandEls = self.doc.getElementsByTagName('Command')
-		for commandIndex, command in enumerate(commandEls):
-			hexnum = command.getElementsByTagName('hex').item(0).firstChild.data
-			if hexnum == hex(hex_code):
-				return command.getElementsByTagName('name').item(0).firstChild.data
+  def getCommandFromHex(self, hex_code):
+    '''
+    Returns the command name from hex code (i.e. button, on, off)
+    '''
+    try:
+      commandEls = self.doc.getElementsByTagName('Command')
+      for commandIndex, command in enumerate(commandEls):
+        hexnum = command.getElementsByTagName('hex').item(0).firstChild.data
+        if hexnum == hex(hex_code):
+          return command.getElementsByTagName('name').item(0).firstChild.data
+    except:
+      pass
+    return None
 
-			
-		return None
-	
-	def getCommandNumFromHex(self, hex_code):
-		'''
-		Returns the device address given an index into the device list.
-		'''
-		commandEls = self.doc.getElementsByTagName('Command')
-		for commandIndex, command in enumerate(commandEls):
-			hexnum = command.getElementsByTagName('hex').item(0).firstChild.data
-			if hexnum == hex(hex_code):
-				return command.getElementsByTagName('number').item(0).firstChild.data
-
-			
-		return None
+  def getCommandNumFromHex(self, hex_code):
+    '''
+    Returns the command number (i.e. 1, 2)
+    '''
+    try:
+      commandEls = self.doc.getElementsByTagName('Command')
+      for commandIndex, command in enumerate(commandEls):
+        hexnum = command.getElementsByTagName('hex').item(0).firstChild.data
+        if hexnum == hex(hex_code):
+          return command.getElementsByTagName('number').item(0).firstChild.data
+    except:
+      pass
+    return None
 
 class plm:
 	'''
@@ -1269,7 +1271,7 @@ class AsyncEventThread(threading.Thread):
 
 			print ('RX_ASYNC : %s' % self.plm_obj.list_to_hex(data))
 		
-		if self.last_cmd[0] == cmd1 and self.last_addr == from_addr and ((time_came - self.time_came) < 1):
+		if self.last_cmd[0] == cmd1 and self.last_addr == from_addr and ((time_came - self.time_came) < 2.5):
 			# Do not process redundant group messages
 			#print ('Redundant info')
 			self.dup = True
