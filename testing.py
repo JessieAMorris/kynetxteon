@@ -4,7 +4,7 @@ Created on Oct 4, 2010
 
 @author: sam
 '''
-import pylights, time, kynetx, re
+import pylights, time, kynetx, re, json
 from pprint import pprint
 
 p = pylights.plm("/dev/tty.serial") #,"verbose")
@@ -40,31 +40,34 @@ def showmessage(info, from_addr, command):
 p.addEventListener(showmessage);
 
 def run_directive(directive_to_run):
-	action = directive_to_run['action']
-	if action == "fadein":
-		address = directive_to_run['options']['address']
-		p.fadeIn(address.encode('latin-1'))
-	elif action == "fadeout":
-		address = directive_to_run['options']['address']
-		p.fadeOut(address.encode('latin-1'))
-	elif action == "linktable":
-		print "linked to:"
-		pprint(p.getPlmLinkTable())
-		print "\n"
-	elif action == "monitor":
-		p.startMonitorMode()
-		p.addEventListener(showmessage)
-	elif action == "link":
-		linked = raw_input("enter the id of the responder: ")
-		p.createLink("11.11.11","AA.AA.AA")
+  action = directive_to_run['action']
+  if action == "fadein":
+    address = directive_to_run['options']['address']
+    p.fadeIn(address.encode('latin-1'))
+  elif action == "fadeout":
+    address = directive_to_run['options']['address']
+    p.fadeOut(address.encode('latin-1'))
+  elif action == "linktable":
+    print "linked to:"
+    pprint(p.getPlmLinkTable())
+    print "\n"
+  elif action == "monitor":
+    p.startMonitorMode()
+    p.addEventListener(showmessage)
+  elif action == "link":
+    linked = raw_input("enter the id of the responder: ")
+    p.createLink("11.11.11","AA.AA.AA")
 
-def docheckin():
-	app.raise_event("insteon","checkin")
-	for directive in app.directives:
-		run_directive(directive)
-
+app.open_socket()
+print app.get_token()
+app.set_token("jamdev")
+print app.get_token()
 
 
 while(True):
-	docheckin()
-	time.sleep(5)
+  directives_string = app.get_socket_line();
+  print directives_string
+  directives = json.loads(directives_string)['query']['directive']
+  app.parse_directives(directives)
+  for directive in app.directives:
+    run_directive(directive)
